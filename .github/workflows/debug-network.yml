@@ -1,0 +1,71 @@
+name: Debug JAKIM Network
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug-network:
+    runs-on: windows-latest
+
+    steps:
+      - name: Show runner info
+        shell: pwsh
+        run: |
+          Write-Host "Runner OS: $env:RUNNER_OS"
+          Write-Host "Machine name: $env:COMPUTERNAME"
+          Write-Host "PowerShell: $($PSVersionTable.PSVersion)"
+
+      - name: DNS lookup
+        shell: pwsh
+        run: |
+          Write-Host "Resolving e-solat.gov.my"
+          Resolve-DnsName e-solat.gov.my -ErrorAction Continue
+          Write-Host "Resolving www.e-solat.gov.my"
+          Resolve-DnsName www.e-solat.gov.my -ErrorAction Continue
+          Write-Host "Resolving api.github.com"
+          Resolve-DnsName api.github.com -ErrorAction Continue
+
+      - name: TCP connectivity
+        shell: pwsh
+        run: |
+          Write-Host "Testing TCP 443 to e-solat.gov.my"
+          Test-NetConnection e-solat.gov.my -Port 443 -InformationLevel Detailed
+          Write-Host "Testing TCP 443 to www.e-solat.gov.my"
+          Test-NetConnection www.e-solat.gov.my -Port 443 -InformationLevel Detailed
+          Write-Host "Testing TCP 443 to api.github.com"
+          Test-NetConnection api.github.com -Port 443 -InformationLevel Detailed
+
+      - name: Public endpoint checks
+        shell: pwsh
+        run: |
+          $targets = @(
+            "https://api.github.com",
+            "https://www.google.com",
+            "https://www.e-solat.gov.my",
+            "https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&zone=WLY01&period=today"
+          )
+
+          foreach ($url in $targets) {
+            Write-Host "Checking $url"
+            try {
+              $response = Invoke-WebRequest -Uri $url -Method Get -TimeoutSec 30 -Headers @{
+                "Accept" = "application/json,text/html"
+                "User-Agent" = "GitHubActionsNetworkDebug/1.0"
+              }
+              Write-Host "StatusCode: $($response.StatusCode)"
+              Write-Host "ContentType: $($response.Headers.'Content-Type')"
+              if ($response.Content) {
+                $preview = $response.Content.Substring(0, [Math]::Min(200, $response.Content.Length))
+                Write-Host "Preview: $preview"
+              }
+            } catch {
+              Write-Warning "Request failed for $url"
+              Write-Warning $_.Exception.Message
+            }
+            Write-Host "-----"
+          }
+
+      - name: Curl verbose JAKIM
+        shell: pwsh
+        run: |
+          curl.exe -I -v "https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&zone=WLY01&period=today"
