@@ -303,14 +303,14 @@ async function fetchPrayerTimes(zoneCode) {
   setNotice("Loading prayer times...");
 
   try {
-    const { payload, today, source } = await loadPrayerTimes(zoneCode);
+    const { payload, today, source, generatedAt } = await loadPrayerTimes(zoneCode);
     lastDataSource = source;
     renderPrayerTimes(today);
     META_OUTPUT.textContent = `${payload.zone} | ${today.day}, ${today.date} | Source: ${source === "live" ? "JAKIM live" : "cached monthly data"}`;
     SOURCE_OUTPUT.textContent =
       source === "live"
         ? "Showing live prayer times from JAKIM."
-        : "Live JAKIM is unavailable here, so this view is using the bundled monthly cache.";
+        : `Live JAKIM is unavailable here, so this view is using the bundled monthly cache. Last updated ${formatGeneratedAt(generatedAt)}.`;
     const zone = ZONES.find((entry) => entry.code === zoneCode);
     setNotice(
       zone
@@ -383,6 +383,7 @@ async function tryCachedPrayerTimes(zoneCode) {
       },
       today,
       source: "cache",
+      generatedAt: payload.generatedAt,
     };
   } catch (error) {
     console.error(error);
@@ -415,4 +416,14 @@ function formatDateKey(date) {
   const month = monthNames[date.getMonth()];
   const year = date.getFullYear();
   return `${day}-${month}-${year}`;
+}
+
+function formatGeneratedAt(value) {
+  if (!value) return "recently";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "recently";
+  return date.toLocaleString("en-MY", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 }

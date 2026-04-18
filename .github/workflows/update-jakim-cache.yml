@@ -1,0 +1,37 @@
+name: Update JAKIM Cache
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 0 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-cache:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update current and next month cache
+        shell: pwsh
+        run: |
+          $currentMonth = Get-Date -Format "yyyy-MM"
+          $nextMonth = (Get-Date).AddMonths(1).ToString("yyyy-MM")
+          .\scripts\update-fallback.ps1 -Month $currentMonth
+          .\scripts\update-fallback.ps1 -Month $nextMonth
+
+      - name: Commit cache updates
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/fallback scripts/update-fallback.ps1
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "Update JAKIM cache"
+            git push
+          }
