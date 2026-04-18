@@ -82,6 +82,7 @@ const NOTICE = document.querySelector("#notice");
 const PLACE_OUTPUT = document.querySelector("#place-output");
 const ZONE_OUTPUT = document.querySelector("#zone-output");
 const META_OUTPUT = document.querySelector("#meta-output");
+const UPDATED_OUTPUT = document.querySelector("#updated-output");
 const SOURCE_OUTPUT = document.querySelector("#source-output");
 const PRAYER_GRID = document.querySelector("#prayer-grid");
 const CARD_TEMPLATE = document.querySelector("#prayer-card-template");
@@ -307,10 +308,14 @@ async function fetchPrayerTimes(zoneCode) {
     lastDataSource = source;
     renderPrayerTimes(today);
     META_OUTPUT.textContent = `${payload.zone} | ${today.day}, ${today.date} | Source: ${source === "live" ? "JAKIM live" : "cached monthly data"}`;
+    UPDATED_OUTPUT.textContent =
+      source === "live"
+        ? "Last updated: live from JAKIM"
+        : `Last updated: ${formatGeneratedAt(generatedAt)}`;
     SOURCE_OUTPUT.textContent =
       source === "live"
         ? "Showing live prayer times from JAKIM."
-        : `Live JAKIM is unavailable here, so this view is using the bundled monthly cache. Last updated ${formatGeneratedAt(generatedAt)}.`;
+        : "Live JAKIM is unavailable here, so this view is using the bundled monthly cache.";
     const zone = ZONES.find((entry) => entry.code === zoneCode);
     setNotice(
       zone
@@ -320,6 +325,7 @@ async function fetchPrayerTimes(zoneCode) {
   } catch (error) {
     console.error(error);
     META_OUTPUT.textContent = "Unable to load prayer times.";
+    UPDATED_OUTPUT.textContent = "Last updated: unavailable";
     SOURCE_OUTPUT.textContent = "No live or cached prayer-time data is available for the selected zone.";
     PRAYER_GRID.innerHTML = "";
     setNotice(error.message || "Prayer time request failed.", true);
