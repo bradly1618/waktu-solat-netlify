@@ -78,7 +78,22 @@ async function readCachedPrayerTimes(zone) {
     const now = new Date();
     const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const dateKey = formatDateKey(now);
-    const filePath = path.join(process.cwd(), "data", "fallback", `${monthKey}.json`);
+    const monthlyPath = path.join(process.cwd(), "data", "fallback", `${monthKey}.json`);
+    const yearlyPath = path.join(process.cwd(), "data", "fallback", "yearly", `${now.getFullYear()}.json`);
+
+    const monthly = await readCachedPrayerFromFile(monthlyPath, zone, dateKey);
+    if (monthly) {
+      return monthly;
+    }
+
+    return await readCachedPrayerFromFile(yearlyPath, zone, dateKey);
+  } catch {
+    return null;
+  }
+}
+
+async function readCachedPrayerFromFile(filePath, zone, dateKey) {
+  try {
     const raw = await fs.readFile(filePath, "utf8");
     const payload = JSON.parse(raw);
     const zonePayload = payload.zones?.[zone];

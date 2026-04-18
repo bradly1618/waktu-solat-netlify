@@ -366,35 +366,50 @@ async function tryLivePrayerTimes(zoneCode) {
 async function tryCachedPrayerTimes(zoneCode) {
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const yearKey = String(now.getFullYear());
 
   try {
-    const response = await fetch(`./data/fallback/${monthKey}.json`);
-    if (!response.ok) {
-      throw new Error("Cached monthly file is unavailable.");
+    const monthly = await readCachedFile(`./data/fallback/${monthKey}.json`, zoneCode, now);
+    if (monthly) {
+      return monthly;
     }
 
-    const payload = await response.json();
-    const zonePayload = payload.zones?.[zoneCode];
-    const todayKey = formatDateKey(now);
-    const today = zonePayload?.prayerTime?.find((entry) => entry.date === todayKey);
-
-    if (!zonePayload || !today) {
-      throw new Error("Cached prayer times do not include the selected zone/date.");
+    const yearly = await readCachedFile(`./data/fallback/yearly/${yearKey}.json`, zoneCode, now);
+    if (yearly) {
+      return yearly;
     }
 
-    return {
-      payload: {
-        zone: zoneCode,
-        prayerTime: zonePayload.prayerTime,
-      },
-      today,
-      source: "cache",
-      generatedAt: payload.generatedAt,
-    };
+    throw new Error("Cached prayer times do not include the selected zone/date.");
   } catch (error) {
     console.error(error);
     return null;
   }
+}
+
+async function readCachedFile(filePath, zoneCode, now) {
+  const response = await fetch(filePath);
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = await response.json();
+  const zonePayload = payload.zones?.[zoneCode];
+  const todayKey = formatDateKey(now);
+  const today = zonePayload?.prayerTime?.find((entry) => entry.date === todayKey);
+
+  if (!zonePayload || !today) {
+    return null;
+  }
+
+  return {
+    payload: {
+      zone: zoneCode,
+      prayerTime: zonePayload.prayerTime,
+    },
+    today,
+    source: "cache",
+    generatedAt: payload.generatedAt,
+  };
 }
 
 function renderPrayerTimes(times) {
