@@ -88,7 +88,11 @@
         >
           <div class="field-head">
             <span id="manual-picker-title">Choose Manually</span>
-            <small>Search by state, city, or zone code</small>
+            <small>Pick a state first, then choose the correct zone</small>
+          </div>
+          <div id="manual-summary" class="manual-summary">
+            <span class="status-label">Step 1</span>
+            <strong>Choose a state to narrow the zone list.</strong>
           </div>
           <input
             id="zone-search"
@@ -101,6 +105,9 @@
           <div id="selected-zone-card" class="selected-zone-card">
             <span class="status-label">Current manual selection</span>
             <strong id="selected-zone-output">No zone selected</strong>
+          </div>
+          <div id="zone-list-hint" class="zone-list-hint">
+            Select a state above to view its available JAKIM zones.
           </div>
           <div id="zone-list" class="zone-list" role="listbox" aria-label="Available JAKIM zones"></div>
           <select id="zone-select" aria-label="Select JAKIM zone" hidden></select>

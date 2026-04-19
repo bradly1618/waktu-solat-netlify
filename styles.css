@@ -258,6 +258,24 @@ select {
   gap: 0.85rem;
 }
 
+.manual-summary,
+.zone-list-hint {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.manual-summary strong {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.zone-list-hint {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .manual-toggle {
   display: none;
 }
@@ -325,6 +343,7 @@ select {
   max-height: 340px;
   overflow: auto;
   padding-right: 0.15rem;
+  align-content: start;
 }
 
 .zone-option {
@@ -438,6 +457,11 @@ select {
 
   .manual-picker {
     gap: 0.7rem;
+  }
+
+  .manual-summary,
+  .zone-list-hint {
+    padding: 0.75rem 0.85rem;
   }
 
   .state-filter {

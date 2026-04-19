@@ -140,6 +140,8 @@ const ZONE_SELECT = document.querySelector("#zone-select");
 const ZONE_SEARCH = document.querySelector("#zone-search");
 const STATE_FILTER = document.querySelector("#state-filter");
 const ZONE_LIST = document.querySelector("#zone-list");
+const ZONE_LIST_HINT = document.querySelector("#zone-list-hint");
+const MANUAL_SUMMARY = document.querySelector("#manual-summary");
 const SELECTED_ZONE_CARD = document.querySelector("#selected-zone-card");
 const MANUAL_TOGGLE = document.querySelector("#manual-toggle");
 const MANUAL_PICKER_PANEL = document.querySelector("#manual-picker-panel");
@@ -164,12 +166,14 @@ init();
 
 function init() {
   populateZoneOptions();
-  renderStateFilters();
   const savedZone = localStorage.getItem("jakim-zone") || "WLY01";
   selectionMode = localStorage.getItem("selection-mode") || "manual";
   ZONE_SELECT.value = savedZone;
   PLACE_OUTPUT.textContent = "Manual selection / last saved zone";
   setZone(savedZone, "Manual zone selected.");
+  const savedZoneEntry = ZONES.find((zone) => zone.code === savedZone);
+  activeStateFilter = savedZoneEntry?.state || "All";
+  renderStateFilters();
   renderZoneList();
 
   ZONE_SELECT.addEventListener("change", () => {
@@ -221,6 +225,10 @@ function renderStateFilters() {
     button.innerHTML = `${renderFlag(meta?.flag, `${state} flag`)}<span>${meta?.shortLabel || state}</span>`;
     button.addEventListener("click", () => {
       activeStateFilter = state;
+      if (state !== "All") {
+        ZONE_SEARCH.value = "";
+        searchQuery = "";
+      }
       renderStateFilters();
       renderZoneList();
     });
@@ -230,12 +238,25 @@ function renderStateFilters() {
 
 function renderZoneList() {
   ZONE_LIST.innerHTML = "";
+  const hasStateFilter = activeStateFilter !== "All";
+  const needsPrompt = !hasStateFilter && !searchQuery;
+  ZONE_LIST_HINT.hidden = !needsPrompt;
+
+  if (needsPrompt) {
+    MANUAL_SUMMARY.innerHTML = `<span class="status-label">Step 1</span><strong>Choose a state to narrow the zone list.</strong>`;
+    return;
+  }
+
   const filteredZones = ZONES.filter((zone) => {
     const matchesState = activeStateFilter === "All" || zone.state === activeStateFilter;
     const haystack = `${zone.code} ${zone.label} ${zone.state} ${zone.aliases.join(" ")}`.toLowerCase();
     const matchesSearch = !searchQuery || haystack.includes(searchQuery);
     return matchesState && matchesSearch;
   });
+
+  const zoneCountLabel = filteredZones.length === 1 ? "1 zone" : `${filteredZones.length} zones`;
+  const summaryLabel = hasStateFilter ? activeStateFilter : "matching states";
+  MANUAL_SUMMARY.innerHTML = `<span class="status-label">Step 2</span><strong>${zoneCountLabel} ready under ${summaryLabel}.</strong>`;
 
   if (filteredZones.length === 0) {
     const empty = document.createElement("p");
@@ -259,6 +280,9 @@ function renderZoneList() {
       setZone(zone.code, "Manual zone selected.");
       renderZoneList();
       fetchPrayerTimes(zone.code);
+      if (isMobileLayout) {
+        setManualPickerCollapsed(true);
+      }
     });
     if (meta?.flag) {
       button.insertAdjacentHTML("afterbegin", renderFlag(meta.flag, `${zone.state} flag`));
@@ -277,15 +301,17 @@ function setZone(zoneCode, message) {
   activeZone = zoneCode;
   localStorage.setItem("jakim-zone", zoneCode);
   ZONE_OUTPUT.textContent = zone ? `${zone.code} - ${zone.label}` : zoneCode;
+  if (zone) {
+    activeStateFilter = zone.state;
+    renderStateFilters();
+  }
   SELECTED_ZONE_CARD.innerHTML = zone
     ? `${renderFlag(STATE_META[zone.state]?.flag, `${zone.state} flag`, true)}<div class="selected-zone-copy"><span class="status-label">Current manual selection</span><strong id="selected-zone-output">${zone.code} - ${zone.label}</strong></div>`
     : `<div class="selected-zone-copy"><span class="status-label">Current manual selection</span><strong id="selected-zone-output">${zoneCode}</strong></div>`;
   if (message) {
     setNotice(message, false);
   }
-  if (zone) {
-    renderZoneList();
-  }
+  renderZoneList();
 }
 
 function setSelectionMode(mode) {
