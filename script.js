@@ -155,6 +155,7 @@ const PRAYER_GRID = document.querySelector("#prayer-grid");
 const CARD_TEMPLATE = document.querySelector("#prayer-card-template");
 const DETECT_BUTTON = document.querySelector("#detect-button");
 const REFRESH_BUTTON = document.querySelector("#refresh-button");
+const IS_GITHUB_PAGES = window.location.hostname.endsWith("github.io");
 
 let activeZone = "";
 let lastPlace = "";
@@ -196,7 +197,21 @@ function init() {
   REFRESH_BUTTON.addEventListener("click", () => fetchPrayerTimes(activeZone || ZONE_SELECT.value));
   syncMobileLayout();
   window.addEventListener("resize", syncMobileLayout);
+  configureHostingMode();
   fetchPrayerTimes(savedZone);
+}
+
+function configureHostingMode() {
+  if (!IS_GITHUB_PAGES) {
+    return;
+  }
+
+  DETECT_BUTTON.textContent = "Manual Zone Only";
+  DETECT_BUTTON.setAttribute("title", "Auto-detect is unavailable on GitHub Pages.");
+
+  if (selectionMode !== "auto") {
+    setNotice("GitHub Pages version uses manual zone selection. Pick your state and zone below.", false);
+  }
 }
 
 function populateZoneOptions() {
@@ -348,6 +363,13 @@ function renderFlag(src, alt, isLarge = false) {
 }
 
 async function detectLocation() {
+  if (IS_GITHUB_PAGES) {
+    setManualPickerCollapsed(false);
+    setSelectionMode("manual");
+    setNotice("Auto-detect is unavailable on GitHub Pages. Please choose your state and zone manually.", true);
+    return;
+  }
+
   if (!navigator.geolocation) {
     setNotice("This browser does not support geolocation. Please use the manual zone list.", true);
     return;
