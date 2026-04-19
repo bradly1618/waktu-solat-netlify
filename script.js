@@ -159,6 +159,7 @@ let lastPlace = "";
 let activeStateFilter = "All";
 let searchQuery = "";
 let selectionMode = "manual";
+let isMobileLayout = null;
 init();
 
 function init() {
@@ -300,12 +301,18 @@ function setManualPickerCollapsed(collapsed) {
 
 function syncMobileLayout() {
   const isMobile = window.matchMedia("(max-width: 560px)").matches;
+  if (isMobileLayout === isMobile) {
+    return;
+  }
+
+  isMobileLayout = isMobile;
+
   if (isMobile) {
     setManualPickerCollapsed(true);
   } else {
     MANUAL_PICKER_PANEL.dataset.collapsed = "false";
     MANUAL_TOGGLE.setAttribute("aria-expanded", "true");
-    MANUAL_TOGGLE.textContent = "Choose Zone Manually";
+    MANUAL_TOGGLE.textContent = "Hide Manual Picker";
   }
 }
 
