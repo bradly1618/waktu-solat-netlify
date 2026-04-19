@@ -77,7 +77,70 @@ const SINGLE_ZONE_STATES = new Map([
   ["penang", "PNG01"],
 ]);
 
+const STATE_META = {
+  Johor: {
+    shortLabel: "Johor",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Johor.svg",
+  },
+  Kedah: {
+    shortLabel: "Kedah",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Kedah.svg",
+  },
+  Kelantan: {
+    shortLabel: "Kelantan",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Kelantan.svg",
+  },
+  Melaka: {
+    shortLabel: "Melaka",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Malacca.svg",
+  },
+  "Negeri Sembilan": {
+    shortLabel: "N. Sembilan",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Negeri_Sembilan.svg",
+  },
+  Pahang: {
+    shortLabel: "Pahang",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Pahang.svg",
+  },
+  Perlis: {
+    shortLabel: "Perlis",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Perlis.svg",
+  },
+  "Pulau Pinang": {
+    shortLabel: "Penang",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Penang.svg",
+  },
+  Perak: {
+    shortLabel: "Perak",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Perak.svg",
+  },
+  Sabah: {
+    shortLabel: "Sabah",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Sabah.svg",
+  },
+  Sarawak: {
+    shortLabel: "Sarawak",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Sarawak.svg",
+  },
+  Selangor: {
+    shortLabel: "Selangor",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Selangor.svg",
+  },
+  Terengganu: {
+    shortLabel: "Terengganu",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Terengganu.svg",
+  },
+  "Wilayah Persekutuan": {
+    shortLabel: "W.P.",
+    flag: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_the_Federal_Territories_of_Malaysia.svg",
+  },
+};
+
 const ZONE_SELECT = document.querySelector("#zone-select");
+const ZONE_SEARCH = document.querySelector("#zone-search");
+const STATE_FILTER = document.querySelector("#state-filter");
+const ZONE_LIST = document.querySelector("#zone-list");
+const SELECTED_ZONE_CARD = document.querySelector("#selected-zone-card");
 const NOTICE = document.querySelector("#notice");
 const PLACE_OUTPUT = document.querySelector("#place-output");
 const ZONE_OUTPUT = document.querySelector("#zone-output");
@@ -91,18 +154,27 @@ const REFRESH_BUTTON = document.querySelector("#refresh-button");
 
 let activeZone = "";
 let lastPlace = "";
+let activeStateFilter = "All";
+let searchQuery = "";
 init();
 
 function init() {
   populateZoneOptions();
+  renderStateFilters();
   const savedZone = localStorage.getItem("jakim-zone") || "WLY01";
   ZONE_SELECT.value = savedZone;
   PLACE_OUTPUT.textContent = "Manual selection / last saved zone";
   setZone(savedZone, "Manual zone selected.");
+  renderZoneList();
 
   ZONE_SELECT.addEventListener("change", () => {
     setZone(ZONE_SELECT.value, "Manual zone selected.");
     fetchPrayerTimes(ZONE_SELECT.value);
+  });
+
+  ZONE_SEARCH.addEventListener("input", () => {
+    searchQuery = ZONE_SEARCH.value.trim().toLowerCase();
+    renderZoneList();
   });
 
   DETECT_BUTTON.addEventListener("click", detectLocation);
@@ -124,6 +196,63 @@ function populateZoneOptions() {
   }
 }
 
+function renderStateFilters() {
+  const states = ["All", ...new Set(ZONES.map((zone) => zone.state))];
+  STATE_FILTER.innerHTML = "";
+
+  for (const state of states) {
+    const meta = STATE_META[state];
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `chip${state === activeStateFilter ? " is-active" : ""}`;
+    button.innerHTML = `${renderFlag(meta?.flag, `${state} flag`)}<span>${meta?.shortLabel || state}</span>`;
+    button.addEventListener("click", () => {
+      activeStateFilter = state;
+      renderStateFilters();
+      renderZoneList();
+    });
+    STATE_FILTER.append(button);
+  }
+}
+
+function renderZoneList() {
+  ZONE_LIST.innerHTML = "";
+  const filteredZones = ZONES.filter((zone) => {
+    const matchesState = activeStateFilter === "All" || zone.state === activeStateFilter;
+    const haystack = `${zone.code} ${zone.label} ${zone.state} ${zone.aliases.join(" ")}`.toLowerCase();
+    const matchesSearch = !searchQuery || haystack.includes(searchQuery);
+    return matchesState && matchesSearch;
+  });
+
+  if (filteredZones.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "source-note";
+    empty.textContent = "No zones match that search yet. Try a state name, city, or zone code.";
+    ZONE_LIST.append(empty);
+    return;
+  }
+
+  for (const zone of filteredZones) {
+    const meta = STATE_META[zone.state];
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `zone-option${zone.code === activeZone ? " is-selected" : ""}`;
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", zone.code === activeZone ? "true" : "false");
+    button.innerHTML = `<strong>${zone.code} - ${zone.state}</strong><span>${zone.label}</span>`;
+    button.addEventListener("click", () => {
+      ZONE_SELECT.value = zone.code;
+      setZone(zone.code, "Manual zone selected.");
+      renderZoneList();
+      fetchPrayerTimes(zone.code);
+    });
+    if (meta?.flag) {
+      button.insertAdjacentHTML("afterbegin", renderFlag(meta.flag, `${zone.state} flag`));
+    }
+    ZONE_LIST.append(button);
+  }
+}
+
 function setNotice(message, isError = false) {
   NOTICE.textContent = message;
   NOTICE.style.color = isError ? "#8b2e16" : "";
@@ -134,9 +263,20 @@ function setZone(zoneCode, message) {
   activeZone = zoneCode;
   localStorage.setItem("jakim-zone", zoneCode);
   ZONE_OUTPUT.textContent = zone ? `${zone.code} - ${zone.label}` : zoneCode;
+  SELECTED_ZONE_CARD.innerHTML = zone
+    ? `${renderFlag(STATE_META[zone.state]?.flag, `${zone.state} flag`, true)}<div class="selected-zone-copy"><span class="status-label">Current manual selection</span><strong id="selected-zone-output">${zone.code} - ${zone.label}</strong></div>`
+    : `<div class="selected-zone-copy"><span class="status-label">Current manual selection</span><strong id="selected-zone-output">${zoneCode}</strong></div>`;
   if (message) {
     setNotice(message, false);
   }
+  if (zone) {
+    renderZoneList();
+  }
+}
+
+function renderFlag(src, alt, isLarge = false) {
+  if (!src) return "";
+  return `<img class="flag-badge${isLarge ? " flag-large" : ""}" src="${src}" alt="${alt}" loading="lazy" decoding="async">`;
 }
 
 async function detectLocation() {

@@ -51,10 +51,26 @@
           </article>
         </div>
 
-        <label class="field">
-          <span>Manual zone selection</span>
-          <select id="zone-select" aria-label="Select JAKIM zone"></select>
-        </label>
+        <section class="field manual-picker" aria-labelledby="manual-picker-title">
+          <div class="field-head">
+            <span id="manual-picker-title">Choose Manually</span>
+            <small>Search by state, city, or zone code</small>
+          </div>
+          <input
+            id="zone-search"
+            class="zone-search"
+            type="search"
+            placeholder="Search Kuala Lumpur, Johor, WLY01..."
+            aria-label="Search prayer zone"
+          />
+          <div id="state-filter" class="state-filter" aria-label="Filter by state"></div>
+          <div id="selected-zone-card" class="selected-zone-card">
+            <span class="status-label">Current manual selection</span>
+            <strong id="selected-zone-output">No zone selected</strong>
+          </div>
+          <div id="zone-list" class="zone-list" role="listbox" aria-label="Available JAKIM zones"></div>
+          <select id="zone-select" aria-label="Select JAKIM zone" hidden></select>
+        </section>
 
         <p id="notice" class="notice" aria-live="polite">
           Choose a zone manually or allow location access to detect it automatically.
