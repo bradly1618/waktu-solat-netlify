@@ -51,7 +51,24 @@
           </article>
         </div>
 
-        <section class="field manual-picker" aria-labelledby="manual-picker-title">
+        <div id="mobile-prayer-anchor" class="mobile-prayer-anchor"></div>
+
+        <button
+          id="manual-toggle"
+          class="button button-secondary manual-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="manual-picker-panel"
+        >
+          Choose Zone Manually
+        </button>
+
+        <section
+          id="manual-picker-panel"
+          class="field manual-picker"
+          aria-labelledby="manual-picker-title"
+          data-collapsed="false"
+        >
           <div class="field-head">
             <span id="manual-picker-title">Choose Manually</span>
             <small>Search by state, city, or zone code</small>

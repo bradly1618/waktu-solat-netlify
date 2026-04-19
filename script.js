@@ -141,6 +141,10 @@ const ZONE_SEARCH = document.querySelector("#zone-search");
 const STATE_FILTER = document.querySelector("#state-filter");
 const ZONE_LIST = document.querySelector("#zone-list");
 const SELECTED_ZONE_CARD = document.querySelector("#selected-zone-card");
+const MANUAL_TOGGLE = document.querySelector("#manual-toggle");
+const MANUAL_PICKER_PANEL = document.querySelector("#manual-picker-panel");
+const MOBILE_PRAYER_ANCHOR = document.querySelector("#mobile-prayer-anchor");
+const PRAYER_PANEL = document.querySelector(".prayer-panel");
 const NOTICE = document.querySelector("#notice");
 const PLACE_OUTPUT = document.querySelector("#place-output");
 const ZONE_OUTPUT = document.querySelector("#zone-output");
@@ -180,8 +184,15 @@ function init() {
     renderZoneList();
   });
 
+  MANUAL_TOGGLE.addEventListener("click", () => {
+    const collapsed = MANUAL_PICKER_PANEL.dataset.collapsed === "true";
+    setManualPickerCollapsed(!collapsed);
+  });
+
   DETECT_BUTTON.addEventListener("click", detectLocation);
   REFRESH_BUTTON.addEventListener("click", () => fetchPrayerTimes(activeZone || ZONE_SELECT.value));
+  syncMobileLayout();
+  window.addEventListener("resize", syncMobileLayout);
   fetchPrayerTimes(savedZone);
 }
 
@@ -281,6 +292,28 @@ function setZone(zoneCode, message) {
 function setSelectionMode(mode) {
   selectionMode = mode;
   localStorage.setItem("selection-mode", mode);
+}
+
+function setManualPickerCollapsed(collapsed) {
+  MANUAL_PICKER_PANEL.dataset.collapsed = collapsed ? "true" : "false";
+  MANUAL_TOGGLE.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  MANUAL_TOGGLE.textContent = collapsed ? "Choose Zone Manually" : "Hide Manual Picker";
+}
+
+function syncMobileLayout() {
+  const isMobile = window.matchMedia("(max-width: 560px)").matches;
+  if (isMobile) {
+    PRAYER_PANEL.parentElement?.insertBefore(PRAYER_PANEL, MOBILE_PRAYER_ANCHOR.nextSibling);
+    setManualPickerCollapsed(true);
+  } else {
+    const controlsPanel = document.querySelector(".controls");
+    if (controlsPanel && PRAYER_PANEL.nextElementSibling?.classList.contains("zone-guide")) {
+      controlsPanel.parentElement?.insertBefore(PRAYER_PANEL, document.querySelector(".zone-guide"));
+    }
+    MANUAL_PICKER_PANEL.dataset.collapsed = "false";
+    MANUAL_TOGGLE.setAttribute("aria-expanded", "true");
+    MANUAL_TOGGLE.textContent = "Choose Zone Manually";
+  }
 }
 
 function renderFlag(src, alt, isLarge = false) {
