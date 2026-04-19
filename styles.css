@@ -89,13 +89,10 @@ body::before {
 
 .controls,
 .prayer-panel,
+.manual-panel,
 .zone-guide {
   display: grid;
   gap: 1.2rem;
-}
-
-.mobile-prayer-anchor {
-  display: none;
 }
 
 .panel-head h2,
@@ -404,23 +401,6 @@ select {
 
 @media (max-width: 560px) {
   .shell {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .controls {
-    order: 1;
-  }
-
-  .prayer-panel {
-    order: 2;
-  }
-
-  .zone-guide {
-    order: 3;
-  }
-
-  .shell {
     width: min(100% - 1rem, 100%);
     padding-top: 1.6rem;
   }
@@ -456,17 +436,7 @@ select {
     display: none;
   }
 
-  .mobile-prayer-anchor {
-    display: block;
-    order: 2;
-  }
-
-  .manual-toggle {
-    order: 3;
-  }
-
   .manual-picker {
-    order: 4;
     gap: 0.7rem;
   }
 

@@ -143,8 +143,6 @@ const ZONE_LIST = document.querySelector("#zone-list");
 const SELECTED_ZONE_CARD = document.querySelector("#selected-zone-card");
 const MANUAL_TOGGLE = document.querySelector("#manual-toggle");
 const MANUAL_PICKER_PANEL = document.querySelector("#manual-picker-panel");
-const MOBILE_PRAYER_ANCHOR = document.querySelector("#mobile-prayer-anchor");
-const PRAYER_PANEL = document.querySelector(".prayer-panel");
 const NOTICE = document.querySelector("#notice");
 const PLACE_OUTPUT = document.querySelector("#place-output");
 const ZONE_OUTPUT = document.querySelector("#zone-output");
@@ -303,13 +301,8 @@ function setManualPickerCollapsed(collapsed) {
 function syncMobileLayout() {
   const isMobile = window.matchMedia("(max-width: 560px)").matches;
   if (isMobile) {
-    PRAYER_PANEL.parentElement?.insertBefore(PRAYER_PANEL, MOBILE_PRAYER_ANCHOR.nextSibling);
     setManualPickerCollapsed(true);
   } else {
-    const controlsPanel = document.querySelector(".controls");
-    if (controlsPanel && PRAYER_PANEL.nextElementSibling?.classList.contains("zone-guide")) {
-      controlsPanel.parentElement?.insertBefore(PRAYER_PANEL, document.querySelector(".zone-guide"));
-    }
     MANUAL_PICKER_PANEL.dataset.collapsed = "false";
     MANUAL_TOGGLE.setAttribute("aria-expanded", "true");
     MANUAL_TOGGLE.textContent = "Choose Zone Manually";

@@ -51,8 +51,25 @@
           </article>
         </div>
 
-        <div id="mobile-prayer-anchor" class="mobile-prayer-anchor"></div>
+        <p id="notice" class="notice" aria-live="polite">
+          Choose a zone manually or allow location access to detect it automatically.
+        </p>
+      </section>
 
+      <section class="panel prayer-panel">
+        <div class="panel-head">
+          <h2>Today's Prayer Times</h2>
+          <p id="meta-output">No data loaded yet.</p>
+        </div>
+
+        <p id="updated-output" class="updated-note">Last updated: waiting for data</p>
+        <p id="source-output" class="source-note">
+          Bundled cached prayer times for fast loading.
+        </p>
+        <div id="prayer-grid" class="prayer-grid"></div>
+      </section>
+
+      <section class="panel manual-panel">
         <button
           id="manual-toggle"
           class="button button-secondary manual-toggle"
@@ -88,23 +105,6 @@
           <div id="zone-list" class="zone-list" role="listbox" aria-label="Available JAKIM zones"></div>
           <select id="zone-select" aria-label="Select JAKIM zone" hidden></select>
         </section>
-
-        <p id="notice" class="notice" aria-live="polite">
-          Choose a zone manually or allow location access to detect it automatically.
-        </p>
-      </section>
-
-      <section class="panel prayer-panel">
-        <div class="panel-head">
-          <h2>Today's Prayer Times</h2>
-          <p id="meta-output">No data loaded yet.</p>
-        </div>
-
-        <p id="updated-output" class="updated-note">Last updated: waiting for data</p>
-        <p id="source-output" class="source-note">
-          Live JAKIM first, cached monthly data as fallback.
-        </p>
-        <div id="prayer-grid" class="prayer-grid"></div>
       </section>
 
       <section class="panel zone-guide">
